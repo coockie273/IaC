@@ -1,0 +1,156 @@
+- name: run local terraform
+  hosts: 127.0.0.1
+  connection: local
+  tasks:
+    - name: Run terraform
+      terraform:
+        project_path: "./tf"
+        force_init: yes
+        state: present
+      register: trfrm
+
+    - name: Add tg host
+      add_host:
+        name: tg_server
+        groups: nodes
+        ansible_host: "{{ trfrm.outputs.servers.value.tg_server}}"
+        ansible_ssh_private_key_file: ~/.ssh/id_rsa
+        ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
+
+    - name: Add bd host
+      add_host:
+        name: bd_server
+        groups: nodes
+        ansible_host: "{{ trfrm.outputs.servers.value.bd_server}}"
+        ansible_ssh_private_key_file: ~/.ssh/id_rsa
+        ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
+
+- name: Get secrets from vault
+  hosts: 127.0.0.1
+  tasks:
+    - name: Get db secrets from vault
+      community.hashi_vault.vault_kv2_get:
+        path: db
+      register: db
+
+    - name: Get bot secrets from vault
+      community.hashi_vault.vault_kv2_get:
+        path: bot
+      register: bot
+
+- name: Modify properties of the project
+  hosts: 127.0.0.1
+  tasks:
+    - name: Modify db username
+      ansible.builtin.replace:
+        path: "{{ prop_path }}"
+        regexp: "_dbusername"
+        replace: "{{ db.secret.username}}"
+
+    - name: Modify db username
+      ansible.builtin.replace:
+        path: "{{ prop_path }}"
+        regexp: "_dbpassword"
+        replace: "{{ db.secret.password}}"
+
+    - name: Modify db username
+      ansible.builtin.replace:
+        path: "{{ prop_path }}"
+        regexp: "_token"
+        replace: "{{ bot.secret.token}}"
+
+    - name: Modify db host
+      ansible.builtin.replace:
+        path: "{{ prop_path }}"
+        regexp: "_dbhost"
+        replace: "jdbc:mysql://{{ trfrm.outputs.servers.value.bd_server}}:3306/restarauntFinder"
+
+- name: Wait timeout for creating instances
+  hosts: 127.0.0.1
+  connection: local
+
+  tasks:
+    - name: Wait for port 22
+      wait_for:
+        port: 22
+        host: "{{ trfrm.outputs.servers.value.bd_server}}"
+        delay: 10
+
+- hosts: bd_server
+  name: Start mysql server
+  become: yes
+  tasks:
+    - name: Update apt package cache
+      apt:
+        update_cache: yes
+
+    - name: Install MySQL server
+      apt:
+        name: mysql-server-8.0
+        state: present
+
+    - name: Install python3-pip
+      apt:
+        name: python3-pip
+        state: present
+
+    - name: Install PyMySQL using pip
+      pip:
+        name: pymysql
+        state: present
+        executable: pip3
+
+    - name: Change server configuration
+      ansible.builtin.lineinfile:
+        path: /etc/mysql/mysql.conf.d/mysqld.cnf
+        regexp: "^bind-address"
+        line: "bind-address = 0.0.0.0"
+
+    - name: Start MySQL service
+      service:
+        name: mysql
+        state: started
+        enabled: yes
+
+    - name: Copy sql import script
+      copy:
+        src: "{{ sql_path  }}"
+        dest: /home/ubuntu
+
+    - name: Import database dump
+      mysql_db:
+        name: restarauntFinder
+        state: import
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+        target: /home/ubuntu/DataBaseRestaraunt.sql
+
+
+- hosts: tg_server
+  name: Install JDK 21
+  become: true
+
+  tasks:
+    - name: Update apt package cache
+      apt:
+        update_cache: yes
+
+    - name: Install JDK 21
+      apt:
+        name: openjdk-21-jdk
+        state: present
+
+    - name: Copy jar archive
+      copy:
+        src: "{{ jar_path }}"
+        dest: /home/ubuntu/
+
+    - name: Copy properties file
+      copy:
+        src: "{{ prop_path }}"
+        dest: /home/ubuntu
+
+    - name: Set path to prop file
+      command: export SPRING_CONFIG_LOCATION=/home/ubuntu/"{{ prop_path | basename}}"
+
+    - name: Deploy Java application
+      command: nohup java -jar /home/ubuntu/"{{ jar_path | basename }}" &
