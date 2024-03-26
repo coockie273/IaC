@@ -117,6 +117,7 @@
         priv: "restarantFinder.*:ALL"
         host: "%"  # Разрешить подключение с любого хоста
         state: present
+        login_unix_socket: /run/mysqld/mysqld.sock
 
     - name: Copy sql import script
       copy:
