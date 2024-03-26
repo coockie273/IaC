@@ -60,6 +60,19 @@
       wait_for:
         port: 22
 
+- name: Get secrets on telegram_server
+  hosts: nodes
+  tasks:
+    - name: Get db secrets
+      include_vars:
+        file: db.json
+        name: db
+
+    - name: Get db secrets
+      include_vars:
+        file: bot.json
+        name: bot
+
 - hosts: bd_server
   name: Start mysql server
   become: yes
@@ -96,6 +109,14 @@
         state: started
         enabled: yes
 
+    - name: Add user
+      mysql_user:
+        name: "{{ db.data.username }}"
+        password: "{{ db.data.password }}"
+        priv: "restarantFinder.*:ALL"
+        host: "%"  # Разрешить подключение с любого хоста
+        state: present
+
     - name: Copy sql import script
       copy:
         src: "{{ sql_path  }}"
@@ -107,19 +128,6 @@
         state: import
         login_unix_socket: /var/run/mysqld/mysqld.sock
         target: /home/ubuntu/DataBaseRestaraunt.sql
-
-- name: Get secrets on telegram_server
-  hosts: tg_server
-  tasks:
-    - name: Get db secrets
-      include_vars:
-        file: db.json
-        name: db
-
-    - name: Get db secrets
-      include_vars:
-        file: bot.json
-        name: bot
 
 
 - hosts: tg_server
