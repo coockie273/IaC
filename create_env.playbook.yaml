@@ -26,7 +26,7 @@
         ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
 
 - name: Get secrets from vault
-  hosts: 127.0.0.1
+  hosts: localhost
   tasks:
     - name: Get db secrets from vault
       community.hashi_vault.vault_kv2_get:
@@ -38,32 +38,32 @@
         path: bot
       register: bot
 
-- name: Modify properties of the project
-  hosts: 127.0.0.1
+- name: Write secrets to file
+  hosts: localhost
   tasks:
-    - name: Modify db username
-      ansible.builtin.replace:
-        path: "{{ prop_path }}"
-        regexp: "_dbusername"
-        replace: "{{ db.secret.username}}"
+    - name: Write bd secrets
+      copy:
+        content: "{{ db.data | to_nice_json }}"
+        dest: db.json
 
-    - name: Modify db username
-      ansible.builtin.replace:
-        path: "{{ prop_path }}"
-        regexp: "_dbpassword"
-        replace: "{{ db.secret.password}}"
+    - name: Write bot secrets
+      copy:
+        content: "{{ bot.data | to_nice_json }}"
+        dest: bot.json
 
-    - name: Modify db username
-      ansible.builtin.replace:
-        path: "{{ prop_path }}"
-        regexp: "_token"
-        replace: "{{ bot.secret.token}}"
+- name: Get secrets on telegram_server
+  hosts: tg_server
+  tasks:
+    - name: Get db secrets
+      include_vars:
+        file: db.json
+        name: db
 
-    - name: Modify db host
-      ansible.builtin.replace:
-        path: "{{ prop_path }}"
-        regexp: "_dbhost"
-        replace: "jdbc:mysql://{{ trfrm.outputs.servers.value.bd_server}}:3306/restarauntFinder"
+    - name: Get db secrets
+      include_vars:
+        file: bot.json
+        name: bot
+
 
 - name: Wait timeout for creating instances
   hosts: 127.0.0.1
@@ -73,7 +73,7 @@
     - name: Wait for port 22
       wait_for:
         port: 22
-        host: "{{ trfrm.outputs.servers.value.bd_server}}"
+        host: "{{ hostvars['bd_server']['ansible_host'] }}"
         delay: 10
 
 - hosts: bd_server
@@ -129,6 +129,12 @@
   name: Install JDK 21
   become: true
 
+  environment:
+    SPRING_DATASOURCE_URL: "jdbc:mysql://{{ hostvars['bd_server']['ansible_host']  }}:3306/restarauntFinder"
+    SPRING_DATASOURCE_USERNAME: "{{ db.data.username}}"
+    SPRING_DATASOURCE_PASSWORD: "{{ db.data.password}}"
+    BOT_TOKEN: "{{ bot.data.token}}"
+
   tasks:
     - name: Update apt package cache
       apt:
@@ -144,13 +150,18 @@
         src: "{{ jar_path }}"
         dest: /home/ubuntu/
 
-    - name: Copy properties file
-      copy:
-        src: "{{ prop_path }}"
-        dest: /home/ubuntu
-
-    - name: Set path to prop file
-      command: export SPRING_CONFIG_LOCATION=/home/ubuntu/"{{ prop_path | basename}}"
-
     - name: Deploy Java application
       command: nohup java -jar /home/ubuntu/"{{ jar_path | basename }}" &
+
+- name: Delete files with secrets
+  hosts: localhost
+  tasks:
+    - name: delete bd files
+      ansible.builtin.file:
+        path: db.json
+        state: absent
+
+    - name: delete bot files
+      ansible.builtin.file:
+        path: bot.json
+        state: absent
