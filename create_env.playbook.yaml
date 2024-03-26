@@ -119,6 +119,7 @@
     - name: Get db secrets
       include_vars:
         file: bot.json
+        name: bot
 
 
 - hosts: tg_server
