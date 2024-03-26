@@ -123,7 +123,7 @@
 
 
 - hosts: tg_server
-  name: Install JDK 21
+  name: Deploy application
   become: true
 
   environment:
