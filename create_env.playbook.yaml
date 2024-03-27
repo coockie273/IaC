@@ -164,7 +164,7 @@
       ansible.builtin.shell: export BOT_TOKEN="{{ bot.data.token}}"
 
     - name: Deploy Java application
-      ansible.builtin.shell: nohup java -jar /home/ubuntu/"{{ jar_path | basename }}" &
+      command: nohup java -jar /home/ubuntu/"{{ jar_path | basename }}" &
 
 - name: Delete files with secrets
   hosts: localhost
