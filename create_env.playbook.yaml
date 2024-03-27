@@ -136,12 +136,6 @@
   name: Deploy application
   become: true
 
-  environment:
-    SPRING_DATASOURCE_URL: "jdbc:mysql://{{ hostvars['bd_server']['ansible_host']  }}:3306/restarauntFinder"
-    SPRING_DATASOURCE_USERNAME: "{{ db.data.username}}"
-    SPRING_DATASOURCE_PASSWORD: "{{ db.data.password}}"
-    BOT_TOKEN: "{{ bot.data.token}}"
-
   tasks:
     - name: Update apt package cache
       apt:
@@ -158,6 +152,11 @@
         dest: /home/ubuntu/
 
     - name: Deploy Java application
+      environment:
+        SPRING_DATASOURCE_URL: "jdbc:mysql://{{ hostvars['bd_server']['ansible_host'] }}:3306/restarauntFinder"
+        SPRING_DATASOURCE_USERNAME: "{{ db.data.username }}"
+        SPRING_DATASOURCE_PASSWORD: "{{ db.data.password }}"
+        BOT_TOKEN: "{{ bot.data.token}}"
       command: nohup java -jar /home/ubuntu/"{{ jar_path | basename }}" &
 
 - name: Delete files with secrets
