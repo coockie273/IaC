@@ -5,6 +5,11 @@ After=syslog.target network.target
 [Service]
 SuccessExitStatus=143
 
+Environment="SPRING_DATASOURCE_URL=jdbc:mysql://_host_:3306/restarauntFinder"
+Environment="SPRING_DATASOURCE_USERNAME=_username_"
+Environment="SPRING_DATASOURCE_PASSWORD=_password_"
+Environment="BOT_TOKEN=_token_"
+
 User=ubuntu
 Group=ubuntu
 
