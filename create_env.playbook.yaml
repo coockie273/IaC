@@ -113,11 +113,6 @@
       apt:
         update_cache: yes
 
-    - name: Install net-tools
-      apt:
-        name: net-tools
-        state: present
-
     - name: Install MySQL server
       apt:
         name: mysql-server-8.0
@@ -145,6 +140,11 @@
         name: mysql
         state: started
         enabled: yes
+
+    - name: Install net-tools
+      apt:
+        name: net-tools
+        state: present
 
     - name: Add user
       mysql_user:
