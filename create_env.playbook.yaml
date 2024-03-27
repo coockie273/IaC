@@ -168,7 +168,6 @@
         SPRING_DATASOURCE_PASSWORD: "{{ db.data.password }}"
         BOT_TOKEN: "{{ bot.data.token}}"
       systemd_service:
-        daemon_reload: true
         state: started
         name: rest_finder
 
