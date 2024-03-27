@@ -167,7 +167,10 @@
         SPRING_DATASOURCE_USERNAME: "{{ db.data.username }}"
         SPRING_DATASOURCE_PASSWORD: "{{ db.data.password }}"
         BOT_TOKEN: "{{ bot.data.token}}"
-      command: echo "lol" 
+      systemd:
+        daemon_reload: true
+        state: started
+        name: rest_finder
 
 
 
