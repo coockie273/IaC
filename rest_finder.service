@@ -1,0 +1,18 @@
+[Unit]
+Description=Test service
+After=syslog.target network.target
+
+[Service]
+SuccessExitStatus=143
+
+User=ubuntu
+Group=ubuntu
+
+Type=simple
+
+WorkingDirectory=/home/ubuntu
+ExecStart=/usr/bin/java -jar rest_finder-0.0.1.jar
+ExecStop=/bin/kill -15 $MAINPID
+
+[Install]
+WantedBy=multi-user.target
