@@ -151,6 +151,10 @@
         src: "{{ jar_path }}"
         dest: /home/ubuntu/
 
+    - name: debug
+      msg:
+        var: db
+
     - name: Deploy Java application
       environment:
         SPRING_DATASOURCE_URL: "jdbc:mysql://{{ hostvars['bd_server']['ansible_host'] }}:3306/restarauntFinder"
