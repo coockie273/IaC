@@ -17,11 +17,11 @@
         ansible_ssh_private_key_file: ~/.ssh/id_rsa
         ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
 
-    - name: Add bd host
+    - name: Add db host
       add_host:
-        name: bd_server
+        name: db_server
         groups: nodes
-        ansible_host: "{{ trfrm.outputs.servers.value.bd_server}}"
+        ansible_host: "{{ trfrm.outputs.servers.value.db_server}}"
         ansible_ssh_private_key_file: ~/.ssh/id_rsa
         ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
 
@@ -41,7 +41,7 @@
 - name: Write secrets to file
   hosts: localhost
   tasks:
-    - name: Write bd secrets
+    - name: Write db secrets
       copy:
         content: "{{ db.data | to_nice_json }}"
         dest: db.json
@@ -58,7 +58,7 @@
   tasks:
     - name: Wait for port 22
       wait_for:
-        host: "{{ trfrm.outputs.servers.value.bd_server}}"
+        host: "{{ trfrm.outputs.servers.value.db_server}}"
         port: 22
 
 - name: Get secrets on telegram_server
@@ -74,7 +74,7 @@
         file: bot.json
         name: bot
 
-- hosts: bd_server
+- hosts: db_server
   name: Start mysql server
   become: yes
   tasks:
@@ -153,11 +153,11 @@
 
     - name: Display variable
       ansible.builtin.debug:
-        var: your_variable
+        var: db
 
     - name: Deploy Java application
       environment:
-        SPRING_DATASOURCE_URL: "jdbc:mysql://{{ hostvars['bd_server']['ansible_host'] }}:3306/restarauntFinder"
+        SPRING_DATASOURCE_URL: "jdbc:mysql://{{ hostvars['db_server']['ansible_host'] }}:3306/restarauntFinder"
         SPRING_DATASOURCE_USERNAME: "{{ db.data.username }}"
         SPRING_DATASOURCE_PASSWORD: "{{ db.data.password }}"
         BOT_TOKEN: "{{ bot.data.token}}"
@@ -166,7 +166,7 @@
 - name: Delete files with secrets
   hosts: localhost
   tasks:
-    - name: delete bd files
+    - name: delete db files
       ansible.builtin.file:
         path: db.json
         state: absent
