@@ -1,6 +1,5 @@
 - name: run local terraform
-  hosts: 127.0.0.1
-  connection: local
+  hosts: localhost
   tasks:
     - name: Run terraform
       terraform:
@@ -52,7 +51,7 @@
         dest: bot.json
 
 - name: Modify properties of the project
-  hosts: 127.0.0.1
+  hosts: localhost
   tasks:
     - name: Modify db username
       ansible.builtin.replace:
@@ -79,7 +78,7 @@
         replace: "{{ hostvars['db_server']['ansible_host'] }}"
 
 - name: Wait timeout for creating instances
-  hosts: 127.0.0.1
+  hosts: localhost
   connection: local
 
   tasks:
