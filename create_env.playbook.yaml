@@ -57,7 +57,7 @@
     - name: Modify db username
       ansible.builtin.replace:
         path: "{{ unit_path }}"
-        regexp: "_uname_"
+        regexp: "_username_"
         replace: "{{ db.secret.username}}"
 
     - name: Modify db username
