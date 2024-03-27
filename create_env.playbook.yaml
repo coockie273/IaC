@@ -51,6 +51,33 @@
         content: "{{ bot.data | to_nice_json }}"
         dest: bot.json
 
+- name: Modify properties of the project
+  hosts: 127.0.0.1
+  tasks:
+    - name: Modify db username
+      ansible.builtin.replace:
+        path: "{{ unit_path }}"
+        regexp: "_uname_"
+        replace: "{{ db.secret.username}}"
+
+    - name: Modify db username
+      ansible.builtin.replace:
+        path: "{{ unit_path }}"
+        regexp: "_password_"
+        replace: "{{ db.secret.password}}"
+
+    - name: Modify db username
+      ansible.builtin.replace:
+        path: "{{ unit_path }}"
+        regexp: "_token_"
+        replace: "{{ bot.secret.token}}"
+
+    - name: Modify db host
+      ansible.builtin.replace:
+        path: "{{ unit_path }}"
+        regexp: "_host_"
+        replace: "{{ hostvars['db_server']['ansible_host'] }}"
+
 - name: Wait timeout for creating instances
   hosts: 127.0.0.1
   connection: local
@@ -67,7 +94,7 @@
         port: 22
 
 - name: Get secrets on telegram_server
-  hosts: nodes
+  hosts: db_server
   tasks:
     - name: Get db secrets
       include_vars:
@@ -162,11 +189,6 @@
         dest: /etc/systemd/system/
         
     - name: Deploy Java application
-      environment:
-        SPRING_DATASOURCE_URL: "jdbc:mysql://{{ hostvars['db_server']['ansible_host'] }}:3306/restarauntFinder"
-        SPRING_DATASOURCE_USERNAME: "{{ db.data.username }}"
-        SPRING_DATASOURCE_PASSWORD: "{{ db.data.password }}"
-        BOT_TOKEN: "{{ bot.data.token}}"
       systemd:
         daemon_reload: true
         state: started
