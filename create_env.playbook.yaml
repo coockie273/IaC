@@ -161,9 +161,13 @@
         src: "{{ unit_path }}"
         dest: /etc/systemd/system/
 
-    - name: Reload daemon-service
-      systemd_service:
-        daemon_reload: true
+    - name: Deploy Java application
+      environment:
+        SPRING_DATASOURCE_URL: "jdbc:mysql://{{ hostvars['db_server']['ansible_host'] }}:3306/restarauntFinder"
+        SPRING_DATASOURCE_USERNAME: "{{ db.data.username }}"
+        SPRING_DATASOURCE_PASSWORD: "{{ db.data.password }}"
+        BOT_TOKEN: "{{ bot.data.token}}"
+      command: systemctl start rest_finder.service
 
 
 - name: Delete files with secrets
