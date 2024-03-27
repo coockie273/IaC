@@ -158,7 +158,7 @@
 
     - name: Deploy Java application
       environment:
-        SPRING_DATASOURCE_URL: "jdbc:mysql://{{ hostvars['bd_server']['ansible_host'] }}:3306/restarauntFinder"
+        SPRING_DATASOURCE_URL: "jdbc:mysql://{{ hostvars['db_server']['ansible_host'] }}:3306/restarauntFinder"
         SPRING_DATASOURCE_USERNAME: "{{ db.data.username }}"
         SPRING_DATASOURCE_PASSWORD: "{{ db.data.password }}"
         BOT_TOKEN: "{{ bot.data.token}}"
