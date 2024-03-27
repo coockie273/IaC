@@ -151,9 +151,9 @@
         src: "{{ jar_path }}"
         dest: /home/ubuntu/
 
-    - name: debug
-      msg:
-        var: db
+    - name: Display variable
+      ansible.builtin.debug:
+        var: your_variable
 
     - name: Deploy Java application
       environment:
