@@ -61,8 +61,8 @@ resource "openstack_compute_instance_v2" "restaraunt_finder_tg" {
   }
 }
 
-resource "openstack_compute_instance_v2" "restaraunt_finder_bd" {
-  name        = "restaraunt_finder_bd"
+resource "openstack_compute_instance_v2" "restaraunt_finder_db" {
+  name        = "restaraunt_finder_db"
   image_name  = var.image_name
   flavor_name = var.flavor_name
   key_pair = var.key_pair
