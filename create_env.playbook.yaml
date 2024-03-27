@@ -172,8 +172,6 @@
         state: started
         name: rest_finder
 
-
-
 - name: Delete files with secrets
   hosts: localhost
   tasks:
