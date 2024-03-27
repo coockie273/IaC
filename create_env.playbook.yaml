@@ -119,7 +119,7 @@
       mysql_user:
         name: "{{ db.data.username }}"
         password: "{{ db.data.password }}"
-        priv: "restarantFinder.*:ALL"
+        priv: "restarauntFinder.*:ALL"
         host: "%"  # Разрешить подключение с любого хоста
         state: present
         login_unix_socket: /run/mysqld/mysqld.sock
