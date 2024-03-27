@@ -138,7 +138,7 @@
     - name: Start MySQL service
       service:
         name: mysql
-        state: started
+        state: restarted
         enabled: yes
 
     - name: Install net-tools
